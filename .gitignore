@@ -1,0 +1,44 @@
+# Rust build artifacts
+/target/
+
+# Remove Cargo.lock from gitignore if creating an executable, leave it for libraries
+# Cargo.lock
+
+# Backup files
+**/*.rs.bk
+**/*.bk
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Generated documentation
+/doc/
+
+# Test coverage artifacts
+/.coverage/
+/lcov.info
+
+# Local development artifacts
+.env
+.env.local
+
+# Debug artifacts
+*.profraw
+flamegraph.svg
+perf.data
+perf.data.old
+
+# Benchmarking artifacts
+/benches/target/
+/criterion/
+
+# Log files
+*.log
+
+# OS-specific
+.DS_Store
+Thumbs.db

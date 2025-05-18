@@ -1,0 +1,51 @@
+[package]
+name = "zedi-gen"
+version = "0.1.0"
+edition = "2021"
+authors = ["Don Johnson <dj@codetestcode.io"]
+description = "High-performance synthetic X12 835 healthcare claim data generator"
+license = "MIT"
+repository = ""
+readme = "README.md"
+rust-version = "1.70"
+
+[dependencies]
+clap = { version = "4.4", features = ["derive"] }
+serde = { version = "1.0", features = ["derive", "rc"] }
+serde_json = "1.0"
+rand = { version = "0.8", features = ["std", "std_rng", "getrandom"] }
+rand_chacha = { version = "0.3", features = ["std"] }
+rand_distr = "0.4"
+thiserror = "1.0"
+log = "0.4"
+env_logger = "0.10"
+chrono = { version = "0.4", features = ["serde", "clock"] }
+uuid = { version = "1.4", features = ["v4", "serde", "std"] }
+toml = { version = "0.8", features = ["parse"] }
+anyhow = "1.0"
+rayon = "1.8"  # For parallel processing
+lazy_static = "1.4"
+strum = { version = "0.25", features = ["derive"] }
+
+# Features for controlling build configurations
+[features]
+default = []
+bin = []
+
+# Re-export for proc-macros to use
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+
+[build-dependencies]
+serde_derive = "1.0"
+
+[dev-dependencies]
+criterion = "0.5"
+assert_cmd = "2.0"
+tempfile = "3.3"
+predicates = "3.0"
+
+[[bench]]
+name = "benchmarks"
+harness = false

@@ -1,0 +1,29 @@
+# zedi-gen Configuration Example
+
+# Random seed for reproducible output (optional)
+seed = 42
+
+# Number of claims to generate
+claim_count = 1000
+
+# Anomaly injection rate (0.0 to 1.0)
+anomaly_rate = 0.01  # 1% anomalies
+
+# Output file (optional, stdout if not specified)
+# output_path = "output.json"
+
+# Output format (x12, json, or json-pretty)
+output_format = "json"
+
+# Anomaly type rates (all values between 0.0 and 1.0)
+[anomaly_rates]
+missing_field = 0.3
+invalid_value = 0.2
+invalid_date_format = 0.1
+duplicate_claim = 0.05
+invalid_procedure_code = 0.15
+invalid_modifier_combination = 0.1
+age_gender_mismatch = 0.05
+invalid_provider = 0.1
+invalid_patient_info = 0.2
+missing_documentation = 0.1

@@ -1,0 +1,62 @@
+# .windsurfrules for zedi-gen Project
+
+# Project Overview
+- zedi-gen generates synthetic X12 835 v5010 healthcare claim/payment data strictly based on docs/spec.md.
+- Core functions: synthetic populations, claim data generation, mathematically controlled anomaly injection.
+
+# Coding Standards
+- Language: Rust exclusively.
+- Follow idiomatic Rust: prefer Result/Option types, minimal unwrap usage, avoid unnecessary clones.
+- Keep modules distinct and focused:
+  - population.rs: Synthetic population creation.
+  - claims.rs: X12 835 claim generation logic.
+  - anomalies.rs: Controlled anomaly injection.
+  - generator.rs: Coordination/orchestration.
+  - config.rs: Configuration management.
+  - cli.rs: CLI implementation with clap.
+
+# Project Structure
+- src/main.rs: Application entry point.
+- docs/spec.md: Definitive X12 835 specification.
+- windsuf IDE must always reference docs/spec.md.
+
+# Specification Adherence
+- Strict adherence to docs/spec.md; validation and logic based solely on this spec.
+- When in doubt or encountering ambiguity, prompt user for clarification before proceeding.
+
+# Anomaly Injection Rules
+- Implement rigorous mathematical anomaly controls.
+- Anomaly injection must support:
+  - Structural anomalies (e.g., missing segments).
+  - Semantic anomalies (e.g., incorrect field values).
+  - Logical anomalies (e.g., inconsistent data states).
+- Deterministic randomization ensures reproducibility.
+- Anomaly injection logging mandatory for test traceability.
+
+# Testing and Benchmarking
+- Comprehensive unit tests (cargo test).
+- Integration tests for cross-module validation.
+- Criterion.rs benchmarks for ensuring performance goals (target millions of claims per minute throughput).
+
+# CLI Requirements
+- CLI must be clear, intuitive, and documented:
+```
+
+zedi-gen generate --population 5000 --claims-per-person 3 --anomalies 1%
+
+```
+- CLI options must include:
+- Custom spec file path (--spec).
+- Seed-based reproducibility (--seed).
+- Output options (--output stdout/file).
+
+# Dockerization
+- Use multi-stage Docker builds.
+- Final stage must be based on Alpine Linux for compact size.
+- Include all dependencies; ensure immediate usability.
+
+# AI Assistant Behavioral Rules
+- Always verify recommendations against docs/spec.md.
+- Cascade information to maintain consistent context across sessions.
+- Never assume; explicitly prompt user on spec ambiguity.
+
