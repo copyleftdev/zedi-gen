@@ -65,30 +65,32 @@ impl Generator {
     /// Generate claims and write them to a file
     pub fn generate_to_file<P: AsRef<Path>>(&mut self, path: P) -> io::Result<()> {
         let file = File::create(path)?;
-        self.generate_and_serialize::<File>(Box::new(file))
+        self.generate_and_serialize(Box::new(file))
     }
 
     /// Generate claims and write them to stdout
     pub fn generate_to_stdout(&mut self) -> io::Result<()> {
         let stdout = io::stdout();
         let handle = stdout.lock();
-        self.generate_and_serialize::<io::StdoutLock<'_>>(Box::new(handle))
+        self.generate_and_serialize(Box::new(handle))
     }
 
     /// Generate claims and serialize them to the given writer
-    fn generate_and_serialize<W: Write + 'static>(
-        &mut self,
-        writer: Box<dyn Write>,
-    ) -> io::Result<()> {
+    fn generate_and_serialize(&mut self, writer: Box<dyn Write>) -> io::Result<()> {
         match self.config.output_format {
-            OutputFormat::X12 => self.generate_x12::<W>(writer),
-            OutputFormat::Json => self.generate_json::<W>(writer, false),
-            OutputFormat::JsonPretty => self.generate_json::<W>(writer, true),
+            OutputFormat::X12 => self.generate_x12(writer),
+            OutputFormat::Json => self.generate_json(writer, false),
+            OutputFormat::JsonPretty => self.generate_json(writer, true),
         }
     }
 
+    /// Generate claims and write them to the provided writer. This does not write to stdout or a file.
+    pub fn generate_to_writer(&mut self, writer: Box<dyn Write>) -> io::Result<()> {
+        self.generate_and_serialize(writer)
+    }
+
     /// Generate claims in X12 EDI format (835 transaction set)
-    fn generate_x12<W: Write + 'static>(&mut self, mut writer: Box<dyn Write>) -> io::Result<()> {
+    fn generate_x12(&mut self, mut writer: Box<dyn Write>) -> io::Result<()> {
         // Create a new X12 interchange
         let control_number = Self::generate_control_number();
         let mut interchange = X12Interchange::new("SENDER001", "RECEIVER01", &control_number);
@@ -213,11 +215,7 @@ impl Generator {
     }
 
     /// Generate claims in JSON format
-    fn generate_json<W: Write + 'static>(
-        &mut self,
-        mut writer: Box<dyn Write>,
-        pretty: bool,
-    ) -> io::Result<()> {
+    fn generate_json(&mut self, mut writer: Box<dyn Write>, pretty: bool) -> io::Result<()> {
         let mut claims = Vec::with_capacity(self.config.claim_count);
 
         for _ in 0..self.config.claim_count {

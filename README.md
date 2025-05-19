@@ -123,6 +123,7 @@ cargo test
 
 # Run benchmarks
 cargo bench
+# Detailed benchmark report: see docs/benchmarks.md
 
 # Check for warnings and errors
 cargo check
