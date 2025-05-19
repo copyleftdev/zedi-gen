@@ -10,22 +10,22 @@ pub type Result<T> = std::result::Result<T, Error>;
 pub enum Error {
     /// I/O error
     Io(std::io::Error),
-    
+
     /// JSON serialization/deserialization error
     Json(serde_json::Error),
-    
+
     /// TOML serialization/deserialization error
     Toml(toml::ser::Error),
-    
+
     /// TOML deserialization error
     TomlDe(toml::de::Error),
-    
+
     /// Configuration error
     Config(String),
-    
+
     /// Validation error
     Validation(String),
-    
+
     /// Generation error
     Generation(String),
 }

@@ -1,28 +1,52 @@
 //! Synthetic population generation for zedi-gen
 
+use rand::seq::SliceRandom;
 use rand::{Rng, SeedableRng};
 use rand_chacha::ChaCha8Rng;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::env;
+use std::path::Path;
+
+use csv;
+use fake::faker::{
+    address::en::{BuildingNumber, SecondaryAddress, StreetName},
+    company::en::CompanyName,
+    name::en::{FirstName, LastName},
+};
+use fake::Fake;
+
+#[derive(Debug, Deserialize)]
+struct FirstNameRecord {
+    gender: String,
+    name: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct CityRecord {
+    city: String,
+    state: String,
+    zip: String,
+}
 
 /// Represents a synthetic person
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Person {
     /// Unique identifier
     pub id: String,
-    
+
     /// First name
     pub first_name: String,
-    
+
     /// Last name
     pub last_name: String,
-    
+
     /// Date of birth (YYYY-MM-DD)
     pub date_of_birth: String,
-    
+
     /// Gender (M/F/Other)
     pub gender: String,
-    
+
     /// Address information
     pub address: Address,
 }
@@ -32,16 +56,16 @@ pub struct Person {
 pub struct Address {
     /// Street address line 1
     pub line1: String,
-    
+
     /// Street address line 2 (optional)
     pub line2: Option<String>,
-    
+
     /// City
     pub city: String,
-    
+
     /// State (2-letter code)
     pub state: String,
-    
+
     /// ZIP code
     pub zip_code: String,
 }
@@ -51,16 +75,16 @@ pub struct Address {
 pub struct Provider {
     /// National Provider Identifier (NPI)
     pub npi: String,
-    
+
     /// Provider type (taxonomy code)
     pub provider_type: String,
-    
+
     /// Provider name (organization or individual)
     pub name: String,
-    
+
     /// Address information
     pub address: Address,
-    
+
     /// Taxonomy codes
     pub taxonomy_codes: Vec<String>,
 }
@@ -82,14 +106,107 @@ impl PopulationGenerator {
             Some(seed) => ChaCha8Rng::seed_from_u64(seed),
             None => ChaCha8Rng::from_entropy(),
         };
-        
-        // TODO: Load real data from files
-        let first_names = HashMap::new();
-        let last_names = Vec::new();
-        let cities = Vec::new();
-        let provider_types = Vec::new();
-        let taxonomy_codes = Vec::new();
-        
+
+        // Load real data from files (fallback to defaults if missing)
+        let data_dir = env::var("ZEDI_GEN_DATA_DIR").unwrap_or_else(|_| "data".to_string());
+        let data_path = Path::new(&data_dir);
+
+        // First names by gender
+        let mut first_names: HashMap<String, Vec<String>> = HashMap::new();
+        if let Ok(mut rdr) = csv::Reader::from_path(data_path.join("first_names.csv")) {
+            for result in rdr.deserialize() {
+                if let Ok(rec) = result {
+                    let rec: FirstNameRecord = rec;
+                    first_names
+                        .entry(rec.gender.clone())
+                        .or_default()
+                        .push(rec.name.clone());
+                }
+            }
+        }
+        if first_names.is_empty() {
+            first_names.insert(
+                "M".to_string(),
+                vec!["John".to_string(), "Robert".to_string()],
+            );
+            first_names.insert(
+                "F".to_string(),
+                vec!["Jane".to_string(), "Mary".to_string()],
+            );
+        }
+
+        // Last names
+        let mut last_names = Vec::new();
+        if let Ok(mut rdr) = csv::ReaderBuilder::new()
+            .has_headers(false)
+            .from_path(data_path.join("last_names.csv"))
+        {
+            for result in rdr.records() {
+                if let Ok(record) = result {
+                    if let Some(name) = record.get(0) {
+                        last_names.push(name.to_string());
+                    }
+                }
+            }
+        }
+        if last_names.is_empty() {
+            last_names = vec![
+                "Doe".to_string(),
+                "Smith".to_string(),
+                "Johnson".to_string(),
+            ];
+        }
+
+        // Cities (city, state, zip)
+        let mut cities = Vec::new();
+        if let Ok(mut rdr) = csv::Reader::from_path(data_path.join("cities.csv")) {
+            for result in rdr.deserialize() {
+                if let Ok(rec) = result {
+                    let rec: CityRecord = rec;
+                    cities.push((rec.city, rec.state, rec.zip));
+                }
+            }
+        }
+        if cities.is_empty() {
+            cities.push(("Anytown".to_string(), "CA".to_string(), "12345".to_string()));
+        }
+
+        // Provider types
+        let mut provider_types = Vec::new();
+        if let Ok(mut rdr) = csv::ReaderBuilder::new()
+            .has_headers(false)
+            .from_path(data_path.join("provider_types.csv"))
+        {
+            for result in rdr.records() {
+                if let Ok(record) = result {
+                    if let Some(pt) = record.get(0) {
+                        provider_types.push(pt.to_string());
+                    }
+                }
+            }
+        }
+        if provider_types.is_empty() {
+            provider_types = vec!["General Practice".to_string()];
+        }
+
+        // Taxonomy codes
+        let mut taxonomy_codes = Vec::new();
+        if let Ok(mut rdr) = csv::ReaderBuilder::new()
+            .has_headers(false)
+            .from_path(data_path.join("taxonomy_codes.csv"))
+        {
+            for result in rdr.records() {
+                if let Ok(record) = result {
+                    if let Some(code) = record.get(0) {
+                        taxonomy_codes.push(code.to_string());
+                    }
+                }
+            }
+        }
+        if taxonomy_codes.is_empty() {
+            taxonomy_codes = vec!["207Q00000X".to_string()];
+        }
+
         Self {
             rng,
             first_names,
@@ -99,41 +216,103 @@ impl PopulationGenerator {
             taxonomy_codes,
         }
     }
-    
-    /// Generate a synthetic person
+
+    /// Generate a synthetic person with realistic demographics and address
     pub fn generate_person(&mut self) -> Person {
-        // TODO: Implement realistic person generation
+        // gender selection
+        let gender = if self.rng.gen_bool(0.5) { "M" } else { "F" }.to_string();
+        // first and last name
+        let first_name = self
+            .first_names
+            .get(&gender)
+            .and_then(|names| names.choose(&mut self.rng).cloned())
+            .unwrap_or_else(|| FirstName().fake_with_rng(&mut self.rng));
+        let last_name = self
+            .last_names
+            .choose(&mut self.rng)
+            .cloned()
+            .unwrap_or_else(|| LastName().fake_with_rng(&mut self.rng));
+        // date of birth: random age 18-90 years
+        let today = chrono::Utc::now().date_naive();
+        let min_age_days = 18 * 365;
+        let max_age_days = 90 * 365;
+        let age_days = self.rng.gen_range(min_age_days..=max_age_days) as i64;
+        let dob = today - chrono::Duration::days(age_days);
+        let date_of_birth = dob.format("%Y-%m-%d").to_string();
+        // address: use loaded cities list or fallback
+        let (city, state, zip_code) = self
+            .cities
+            .choose(&mut self.rng)
+            .cloned()
+            .unwrap_or_else(|| ("Anytown".to_string(), "CA".to_string(), "12345".to_string()));
+        let building_number: String = BuildingNumber().fake_with_rng(&mut self.rng);
+        let street_name: String = StreetName().fake_with_rng(&mut self.rng);
+        let line1 = format!("{} {}", building_number, street_name);
+        let line2 = if self.rng.gen_bool(0.2) {
+            Some(SecondaryAddress().fake_with_rng(&mut self.rng))
+        } else {
+            None
+        };
         Person {
             id: uuid::Uuid::new_v4().to_string(),
-            first_name: "John".to_string(),
-            last_name: "Doe".to_string(),
-            date_of_birth: "1970-01-01".to_string(),
-            gender: "M".to_string(),
+            first_name,
+            last_name,
+            date_of_birth,
+            gender,
             address: Address {
-                line1: "123 Main St".to_string(),
-                line2: None,
-                city: "Anytown".to_string(),
-                state: "CA".to_string(),
-                zip_code: "12345".to_string(),
+                line1,
+                line2,
+                city,
+                state,
+                zip_code,
             },
         }
     }
-    
-    /// Generate a synthetic provider
+
+    /// Generate a synthetic provider with realistic details
     pub fn generate_provider(&mut self) -> Provider {
-        // TODO: Implement realistic provider generation
+        // NPI (10-digit identifier)
+        let npi = format!(
+            "{:010}",
+            self.rng.gen_range(1_000_000_000u64..=9_999_999_999u64)
+        );
+        let provider_type = self
+            .provider_types
+            .choose(&mut self.rng)
+            .cloned()
+            .unwrap_or_else(|| "General Practice".to_string());
+        let name: String = CompanyName().fake_with_rng(&mut self.rng);
+        // address
+        let (city, state, zip_code) = self
+            .cities
+            .choose(&mut self.rng)
+            .cloned()
+            .unwrap_or_else(|| ("Anytown".to_string(), "CA".to_string(), "12345".to_string()));
+        let building_number: String = BuildingNumber().fake_with_rng(&mut self.rng);
+        let street_name: String = StreetName().fake_with_rng(&mut self.rng);
+        let line1 = format!("{} {}", building_number, street_name);
+        let line2 = if self.rng.gen_bool(0.3) {
+            Some(SecondaryAddress().fake_with_rng(&mut self.rng))
+        } else {
+            None
+        };
+        let taxonomy_codes = vec![self
+            .taxonomy_codes
+            .choose(&mut self.rng)
+            .cloned()
+            .unwrap_or_else(|| "207Q00000X".to_string())];
         Provider {
-            npi: format!("{:010}", self.rng.gen_range(1000000000u64..=9999999999)),
-            provider_type: "General Practice".to_string(),
-            name: "Acme Medical Group".to_string(),
+            npi,
+            provider_type,
+            name,
             address: Address {
-                line1: "456 Healthcare Dr".to_string(),
-                line2: Some("Suite 100".to_string()),
-                city: "Meditown".to_string(),
-                state: "CA".to_string(),
-                zip_code: "12345".to_string(),
+                line1,
+                line2,
+                city,
+                state,
+                zip_code,
             },
-            taxonomy_codes: vec!["207Q00000X".to_string()],
+            taxonomy_codes,
         }
     }
 }
@@ -141,12 +320,12 @@ impl PopulationGenerator {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[test]
     fn test_person_generation() {
         let mut generator = PopulationGenerator::new(Some(42));
         let person = generator.generate_person();
-        
+
         assert!(!person.id.is_empty());
         assert!(!person.first_name.is_empty());
         assert!(!person.last_name.is_empty());
@@ -157,12 +336,12 @@ mod tests {
         assert!(!person.address.state.is_empty());
         assert!(!person.address.zip_code.is_empty());
     }
-    
+
     #[test]
     fn test_provider_generation() {
         let mut generator = PopulationGenerator::new(Some(42));
         let provider = generator.generate_provider();
-        
+
         assert_eq!(provider.npi.len(), 10);
         assert!(!provider.provider_type.is_empty());
         assert!(!provider.name.is_empty());

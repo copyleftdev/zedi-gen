@@ -47,12 +47,15 @@ zedi-gen generate --count 1000 --seed 42
 
 # Output in JSON format
 zedi-gen generate --count 100 --format json
+
+# Check conformance of an X12 835 file
+zedi-gen conformance path/to/claims.edi
 ```
 
 ### Command Line Options
 
-```
-zedi-gen-generate 
+```bash
+zedi-gen generate
 Generate synthetic X12 835 healthcare claim data
 
 USAGE:
@@ -60,13 +63,22 @@ USAGE:
 
 OPTIONS:
     -a, --anomaly-rate <ANOMALY_RATE>    Anomaly injection rate (0.0 to 100.0) [default: 1.0]
-    -c, --count <COUNT>                    Number of claims to generate [default: 1000]
-    -f, --format <FORMAT>                  Output format [default: x12] [possible values: x12, json,
-                                         json-pretty]
-    -h, --help                             Print help information
-    -o, --output <OUTPUT>                  Output file (default: stdout)
-    -s, --seed <SEED>                      Random seed for reproducible output
-    -V, --version                          Print version information
+    -c, --count <COUNT>                  Number of claims to generate [default: 1000]
+    -d, --data-dir <DATA_DIR>            Data directory for CSV files (default: data)
+    -f, --format <FORMAT>                Output format [default: x12] [possible values: x12, json, json-pretty]
+    -h, --help                           Print help information
+    -o, --output <OUTPUT>                Output file (default: stdout)
+    -s, --seed <SEED>                    Random seed for reproducible output
+    -V, --version                        Print version information
+
+zedi-gen conformance
+Score conformance of an X12 835 file against the spec
+
+USAGE:
+    zedi-gen conformance <INPUT_PATH>
+
+ARGS:
+    <INPUT_PATH>    Input X12 835 file to check for conformance
 ```
 
 ## Docker
@@ -135,6 +147,7 @@ zedi-gen/
 │   ├── population.rs    # Synthetic population generation
 │   ├── claims.rs        # X12 835 claim generation
 │   ├── anomalies.rs     # Anomaly injection
+│   ├── conformance.rs   # Conformance scoring subcommand
 │   ├── generator.rs     # Main generator logic
 │   └── x12/             # X12 835 specific implementations
         ├── mod.rs       # Module declarations and re-exports

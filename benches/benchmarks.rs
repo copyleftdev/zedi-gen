@@ -1,11 +1,7 @@
 //! Benchmarks for zedi-gen
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
-use zedi_gen::{
-    config::Config,
-    generator::Generator,
-    population::PopulationGenerator,
-};
+use zedi_gen::{config::Config, generator::Generator, population::PopulationGenerator};
 
 fn generate_claims(c: &mut Criterion) {
     let config = Config {
@@ -13,7 +9,7 @@ fn generate_claims(c: &mut Criterion) {
         anomaly_rate: 0.01, // 1% anomalies
         ..Default::default()
     };
-    
+
     c.bench_function("generate_1000_claims", |b| {
         b.iter(|| {
             let mut generator = Generator::new(config.clone());
@@ -31,7 +27,7 @@ fn generate_population(c: &mut Criterion) {
             }
         })
     });
-    
+
     c.bench_function("generate_1000_providers", |b| {
         b.iter(|| {
             let mut generator = PopulationGenerator::new(Some(42));

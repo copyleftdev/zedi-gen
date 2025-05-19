@@ -67,8 +67,8 @@ impl FunctionalGroup {
         sender_id: &str,
         receiver_id: &str,
         control_number: &str,
-        date: &str,
-        time: &str,
+        _date: &str,
+        _time: &str,
     ) -> Self {
         let gs = GsSegment {
             gs02_sender_id: sender_id.to_string(),
@@ -167,17 +167,12 @@ mod tests {
     #[test]
     fn test_x12_interchange() {
         let mut interchange = X12Interchange::new("SENDER123", "RECEIVER456", "000000001");
-        
-        let mut group = FunctionalGroup::new(
-            "SENDER123", 
-            "RECEIVER456", 
-            "000000001",
-            "20230518",
-            "1200"
-        );
-        
+
+        let mut group =
+            FunctionalGroup::new("SENDER123", "RECEIVER456", "000000001", "20230518", "1200");
+
         let mut transaction = TransactionSet::new("0001");
-        
+
         // Add a BPR segment
         let bpr = BprSegment {
             bpr02_payment_amount: 1000.50,
@@ -186,17 +181,17 @@ mod tests {
             bpr16_payment_date: "20230518".to_string(),
         };
         transaction.add_segment(bpr);
-        
+
         // Add a TRN segment
         let trn = TrnSegment {
             trn02_reference_id: "1234567890".to_string(),
             trn03_orig_company_id: "COMPANY123".to_string(),
         };
         transaction.add_segment(trn);
-        
+
         group.add_transaction_set(transaction);
         interchange.add_functional_group(group);
-        
+
         let x12_output = format!("{}", interchange);
         assert!(x12_output.contains("ISA*00*"));
         assert!(x12_output.contains("GS*HP*"));

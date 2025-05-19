@@ -21,6 +21,8 @@ log = "0.4"
 env_logger = "0.10"
 chrono = { version = "0.4", features = ["serde", "clock"] }
 uuid = { version = "1.4", features = ["v4", "serde", "std"] }
+csv = "1.1"
+fake = "3"
 toml = { version = "0.8", features = ["parse"] }
 anyhow = "1.0"
 rayon = "1.8"  # For parallel processing

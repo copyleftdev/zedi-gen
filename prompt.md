@@ -90,16 +90,25 @@ zedi-gen/
 #### **6. CLI Interface (`cli.rs`)**
 
 * Clean, user-friendly CLI built with `clap`
-* Intuitive commands for quick use:
+* Supports two primary subcommands for generation and conformance:
 
-  ```
-  zedi-gen generate --population 10000 --claims-per-person 5 --anomalies 2%
-  ```
-* Command options:
+  ```bash
+  # Generate synthetic X12 835 claims
+  zedi-gen generate --count 10000 --anomaly-rate 2.0 --data-dir data
 
-  * `--spec`: Custom specification file (defaults to `docs/spec.md`)
-  * `--seed`: Seed for repeatability
-  * `--output`: Output destination (`stdout`, file)
+  # Score conformance of an X12 835 file against the spec
+  zedi-gen conformance path/to/claims.edi
+  ```
+* Command options for `generate` subcommand:
+
+  * `-c, --count <COUNT>`: Number of claims to generate
+  * `-a, --anomaly-rate <ANOMALY_RATE>`: Anomaly injection rate (0.0 to 100.0)
+  * `-d, --data-dir <DATA_DIR>`: Data directory for CSV files (default: data)
+  * `-f, --format <FORMAT>`: Output format [x12, json, json-pretty]
+  * `-s, --seed <SEED>`: Random seed for reproducible output
+  * `-o, --output <OUTPUT>`: Output file (default: stdout)
+  * `-h, --help`: Print help information
+  * `-V, --version`: Print version information
 
 ---
 

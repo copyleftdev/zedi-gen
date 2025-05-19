@@ -34,8 +34,8 @@ impl X12Segment for IsaSegment {}
 /// GS - Functional Group Header
 #[derive(Debug, Clone)]
 pub struct GsSegment {
-    pub gs02_sender_id: String,       // Application Sender's Code
-    pub gs03_receiver_id: String,     // Application Receiver's Code
+    pub gs02_sender_id: String,            // Application Sender's Code
+    pub gs03_receiver_id: String,          // Application Receiver's Code
     pub gs06_group_control_number: String, // Group Control Number
 }
 
@@ -73,9 +73,9 @@ impl X12Segment for StSegment {}
 #[derive(Debug, Clone)]
 pub struct BprSegment {
     pub bpr02_payment_amount: f64,
-    pub bpr03_credit_debit: char, // C=Credit, D=Debit
+    pub bpr03_credit_debit: char,     // C=Credit, D=Debit
     pub bpr04_payment_method: String, // ACH, CHK, FWT, etc.
-    pub bpr16_payment_date: String, // YYYYMMDD format
+    pub bpr16_payment_date: String,   // YYYYMMDD format
 }
 
 impl fmt::Display for BprSegment {
@@ -117,7 +117,7 @@ impl X12Segment for TrnSegment {}
 #[derive(Debug, Clone)]
 pub struct DtmSegment {
     pub dtm01_qualifier: String, // 405 = Production Date
-    pub dtm02_date: String,     // YYYYMMDD format
+    pub dtm02_date: String,      // YYYYMMDD format
 }
 
 impl fmt::Display for DtmSegment {
@@ -131,9 +131,9 @@ impl X12Segment for DtmSegment {}
 /// N1 - Name
 #[derive(Debug, Clone)]
 pub struct N1Segment {
-    pub n101_entity_id: String,  // PR = Payer, PE = Payee
+    pub n101_entity_id: String, // PR = Payer, PE = Payee
     pub n102_name: String,
-    pub n103_id_qual: String,   // XX = EIN, FI = Federal Tax ID, etc.
+    pub n103_id_qual: String, // XX = EIN, FI = Federal Tax ID, etc.
     pub n104_id: String,
 }
 
@@ -157,7 +157,7 @@ pub struct ClpSegment {
     pub clp03_charge_amount: f64,
     pub clp04_paid_amount: f64,
     pub clp05_patient_responsibility: f64,
-    pub clp06_claim_type: String,   // 11 = Non-FFS, 12 = PPV, etc.
+    pub clp06_claim_type: String, // 11 = Non-FFS, 12 = PPV, etc.
     pub clp07_payer_claim_number: String,
 }
 
@@ -204,6 +204,30 @@ impl fmt::Display for SvcSegment {
 }
 
 impl X12Segment for SvcSegment {}
+/// CAS - Service Adjustment Information
+#[derive(Debug, Clone)]
+pub struct CasSegment {
+    /// Adjustment group code (CAS01)
+    pub cas01_group_code: String,
+    /// Adjustment reason code (CAS02)
+    pub cas02_reason_code: String,
+    /// Adjustment amount (CAS03)
+    pub cas03_amount: f64,
+    /// Adjustment units (CAS04)
+    pub cas04_units: f64,
+}
+
+impl fmt::Display for CasSegment {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "CAS*{}*{}*{:.2}*{:.0}~",
+            self.cas01_group_code, self.cas02_reason_code, self.cas03_amount, self.cas04_units
+        )
+    }
+}
+
+impl X12Segment for CasSegment {}
 
 /// SE - Transaction Set Trailer
 #[derive(Debug, Clone)]

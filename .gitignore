@@ -37,7 +37,11 @@ perf.data.old
 /criterion/
 
 # Log files
+# Log files
 *.log
+
+# Synthetic EDI output
+*.edi
 
 # OS-specific
 .DS_Store
