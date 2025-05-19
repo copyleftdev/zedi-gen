@@ -103,10 +103,10 @@ zedi-gen/
 
   * `-c, --count <COUNT>`: Number of claims to generate
   * `-a, --anomaly-rate <ANOMALY_RATE>`: Anomaly injection rate (0.0 to 100.0)
-  * `-d, --data-dir <DATA_DIR>`: Data directory for CSV files (default: data)
-  * `-f, --format <FORMAT>`: Output format [x12, json, json-pretty]
-  * `-s, --seed <SEED>`: Random seed for reproducible output
+  * `--data-dir <DATA_DIR>`: Data directory for CSV files for realistic generation (default: data)
+  * `--format <FORMAT>`: Output format [x12, json, json-pretty]
   * `-o, --output <OUTPUT>`: Output file (default: stdout)
+  * `--seed <SEED>`: Random seed for reproducible output
   * `-h, --help`: Print help information
   * `-V, --version`: Print version information
 
