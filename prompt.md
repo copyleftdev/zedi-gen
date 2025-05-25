@@ -1,8 +1,6 @@
-Here's your comprehensive and expert-level design specification prompt for the tool **zedi-gen**, capturing your entire vision clearly and precisely:
 
----
 
-## Expert-Level Design Specification: **zedi-gen**
+##  Design Specification: **zedi-gen**
 
 ### **Overview**
 
