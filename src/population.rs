@@ -1,4 +1,4 @@
-//! Synthetic population generation for zedi-gen
+
 
 use rand::seq::SliceRandom;
 use rand::{Rng, SeedableRng};
@@ -29,89 +29,89 @@ struct CityRecord {
     zip: String,
 }
 
-/// Represents a synthetic person
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Person {
-    /// Unique identifier
+    
     pub id: String,
 
-    /// First name
+    
     pub first_name: String,
 
-    /// Last name
+    
     pub last_name: String,
 
-    /// Date of birth (YYYY-MM-DD)
+    
     pub date_of_birth: String,
 
-    /// Gender (M/F/Other)
+    
     pub gender: String,
 
-    /// Address information
+    
     pub address: Address,
 }
 
-/// Represents an address
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Address {
-    /// Street address line 1
+    
     pub line1: String,
 
-    /// Street address line 2 (optional)
+    
     pub line2: Option<String>,
 
-    /// City
+    
     pub city: String,
 
-    /// State (2-letter code)
+    
     pub state: String,
 
-    /// ZIP code
+    
     pub zip_code: String,
 }
 
-/// Represents a healthcare provider
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Provider {
-    /// National Provider Identifier (NPI)
+    
     pub npi: String,
 
-    /// Provider type (taxonomy code)
+    
     pub provider_type: String,
 
-    /// Provider name (organization or individual)
+    
     pub name: String,
 
-    /// Address information
+    
     pub address: Address,
 
-    /// Taxonomy codes
+    
     pub taxonomy_codes: Vec<String>,
 }
 
-/// Generates synthetic population data
+
 pub struct PopulationGenerator {
     rng: ChaCha8Rng,
     first_names: HashMap<String, Vec<String>>,
     last_names: Vec<String>,
-    cities: Vec<(String, String, String)>, // (city, state, zip)
+    cities: Vec<(String, String, String)>, 
     provider_types: Vec<String>,
     taxonomy_codes: Vec<String>,
 }
 
 impl PopulationGenerator {
-    /// Create a new population generator with an optional seed
+    
     pub fn new(seed: Option<u64>) -> Self {
         let rng = match seed {
             Some(seed) => ChaCha8Rng::seed_from_u64(seed),
             None => ChaCha8Rng::from_entropy(),
         };
 
-        // Load real data from files (fallback to defaults if missing)
+        
         let data_dir = env::var("ZEDI_GEN_DATA_DIR").unwrap_or_else(|_| "data".to_string());
         let data_path = Path::new(&data_dir);
 
-        // First names by gender
+        
         let mut first_names: HashMap<String, Vec<String>> = HashMap::new();
         if let Ok(mut rdr) = csv::Reader::from_path(data_path.join("first_names.csv")) {
             for result in rdr.deserialize() {
@@ -135,7 +135,7 @@ impl PopulationGenerator {
             );
         }
 
-        // Last names
+        
         let mut last_names = Vec::new();
         if let Ok(mut rdr) = csv::ReaderBuilder::new()
             .has_headers(false)
@@ -157,7 +157,7 @@ impl PopulationGenerator {
             ];
         }
 
-        // Cities (city, state, zip)
+        
         let mut cities = Vec::new();
         if let Ok(mut rdr) = csv::Reader::from_path(data_path.join("cities.csv")) {
             for result in rdr.deserialize() {
@@ -171,7 +171,7 @@ impl PopulationGenerator {
             cities.push(("Anytown".to_string(), "CA".to_string(), "12345".to_string()));
         }
 
-        // Provider types
+        
         let mut provider_types = Vec::new();
         if let Ok(mut rdr) = csv::ReaderBuilder::new()
             .has_headers(false)
@@ -189,7 +189,7 @@ impl PopulationGenerator {
             provider_types = vec!["General Practice".to_string()];
         }
 
-        // Taxonomy codes
+        
         let mut taxonomy_codes = Vec::new();
         if let Ok(mut rdr) = csv::ReaderBuilder::new()
             .has_headers(false)
@@ -217,11 +217,11 @@ impl PopulationGenerator {
         }
     }
 
-    /// Generate a synthetic person with realistic demographics and address
+    
     pub fn generate_person(&mut self) -> Person {
-        // gender selection
+        
         let gender = if self.rng.gen_bool(0.5) { "M" } else { "F" }.to_string();
-        // first and last name
+        
         let first_name = self
             .first_names
             .get(&gender)
@@ -232,14 +232,14 @@ impl PopulationGenerator {
             .choose(&mut self.rng)
             .cloned()
             .unwrap_or_else(|| LastName().fake_with_rng(&mut self.rng));
-        // date of birth: random age 18-90 years
+        
         let today = chrono::Utc::now().date_naive();
         let min_age_days = 18 * 365;
         let max_age_days = 90 * 365;
         let age_days = self.rng.gen_range(min_age_days..=max_age_days) as i64;
         let dob = today - chrono::Duration::days(age_days);
         let date_of_birth = dob.format("%Y-%m-%d").to_string();
-        // address: use loaded cities list or fallback
+        
         let (city, state, zip_code) = self
             .cities
             .choose(&mut self.rng)
@@ -269,9 +269,9 @@ impl PopulationGenerator {
         }
     }
 
-    /// Generate a synthetic provider with realistic details
+    
     pub fn generate_provider(&mut self) -> Provider {
-        // NPI (10-digit identifier)
+        
         let npi = format!(
             "{:010}",
             self.rng.gen_range(1_000_000_000u64..=9_999_999_999u64)
@@ -282,7 +282,7 @@ impl PopulationGenerator {
             .cloned()
             .unwrap_or_else(|| "General Practice".to_string());
         let name: String = CompanyName().fake_with_rng(&mut self.rng);
-        // address
+        
         let (city, state, zip_code) = self
             .cities
             .choose(&mut self.rng)

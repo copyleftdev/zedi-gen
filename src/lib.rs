@@ -1,4 +1,4 @@
-//! zedi-gen: High-performance synthetic X12 835 healthcare claim data generator
+
 
 #![warn(missing_docs)]
 #![warn(rustdoc::missing_crate_level_docs)]
@@ -12,7 +12,7 @@ pub mod generator;
 pub mod population;
 pub mod x12;
 
-/// Re-export commonly used types
+
 pub use {
     anomalies::AnomalyInjector,
     claims::Claim,
@@ -29,5 +29,5 @@ pub use {
     },
 };
 
-/// A specialized `Result` type for zedi-gen operations.
+
 pub type Result<T> = std::result::Result<T, Error>;

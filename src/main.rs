@@ -1,7 +1,7 @@
-//! zedi-gen: Synthetic X12 835 healthcare claim data generator
-//!
-//! This tool generates realistic, specification-compliant X12 835 claim data
-//! for testing and validation of healthcare claims processing systems.
+
+
+
+
 
 #![warn(missing_docs)]
 #![warn(rustdoc::missing_crate_level_docs)]
@@ -28,15 +28,15 @@ use crate::{
     generator::Generator,
 };
 
-/// Main entry point for zedi-gen
+
 fn main() -> Result<()> {
-    // Initialize logging
+    
     env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("info")).init();
 
-    // Parse command line arguments
+    
     let args = Cli::parse();
 
-    // Run the application
+    
     if let Err(e) = run(args) {
         error!("Error: {}", e);
         process::exit(1);
@@ -45,13 +45,13 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-/// Run the application with the given CLI arguments
+
 fn run(cli: Cli) -> Result<()> {
     match cli.command {
         Command::Generate(gen) => {
             let start_time = Instant::now();
 
-            // Create configuration from generate arguments
+            
             let config = Config::from_cli(&gen);
 
             info!(
@@ -66,10 +66,10 @@ fn run(cli: Cli) -> Result<()> {
                 info!("Output will be written to stdout");
             }
 
-            // Initialize the generator
+            
             let mut generator = Generator::new(config);
 
-            // Generate the claims
+            
             generator.generate()?;
 
             let elapsed = start_time.elapsed();

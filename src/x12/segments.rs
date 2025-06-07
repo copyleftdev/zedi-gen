@@ -1,17 +1,17 @@
-//! X12 835 segment definitions
+
 
 use std::fmt;
 
-/// X12 Segment trait that defines how to format a segment
+
 pub trait X12Segment: fmt::Display {}
 
-/// ISA - Interchange Control Header
+
 #[derive(Debug, Clone)]
 pub struct IsaSegment {
-    pub isa06_sender_id: String,      // Sender ID
-    pub isa08_receiver_id: String,    // Receiver ID
-    pub isa12_control_number: String, // Interchange Control Number
-    pub isa13_usage_indicator: char,  // I=Information, P=Production, T=Test
+    pub isa06_sender_id: String,      
+    pub isa08_receiver_id: String,    
+    pub isa12_control_number: String, 
+    pub isa13_usage_indicator: char,  
 }
 
 impl fmt::Display for IsaSegment {
@@ -31,12 +31,12 @@ impl fmt::Display for IsaSegment {
 
 impl X12Segment for IsaSegment {}
 
-/// GS - Functional Group Header
+
 #[derive(Debug, Clone)]
 pub struct GsSegment {
-    pub gs02_sender_id: String,            // Application Sender's Code
-    pub gs03_receiver_id: String,          // Application Receiver's Code
-    pub gs06_group_control_number: String, // Group Control Number
+    pub gs02_sender_id: String,            
+    pub gs03_receiver_id: String,          
+    pub gs06_group_control_number: String, 
 }
 
 impl fmt::Display for GsSegment {
@@ -55,10 +55,10 @@ impl fmt::Display for GsSegment {
 
 impl X12Segment for GsSegment {}
 
-/// ST - Transaction Set Header
+
 #[derive(Debug, Clone)]
 pub struct StSegment {
-    pub st02_control_number: String, // Transaction Set Control Number
+    pub st02_control_number: String, 
 }
 
 impl fmt::Display for StSegment {
@@ -69,13 +69,13 @@ impl fmt::Display for StSegment {
 
 impl X12Segment for StSegment {}
 
-/// BPR - Beginning of Payment Order/Remittance Advice
+
 #[derive(Debug, Clone)]
 pub struct BprSegment {
     pub bpr02_payment_amount: f64,
-    pub bpr03_credit_debit: char,     // C=Credit, D=Debit
-    pub bpr04_payment_method: String, // ACH, CHK, FWT, etc.
-    pub bpr16_payment_date: String,   // YYYYMMDD format
+    pub bpr03_credit_debit: char,     
+    pub bpr04_payment_method: String, 
+    pub bpr16_payment_date: String,   
 }
 
 impl fmt::Display for BprSegment {
@@ -94,7 +94,7 @@ impl fmt::Display for BprSegment {
 
 impl X12Segment for BprSegment {}
 
-/// TRN - Trace Number
+
 #[derive(Debug, Clone)]
 pub struct TrnSegment {
     pub trn02_reference_id: String,
@@ -113,11 +113,11 @@ impl fmt::Display for TrnSegment {
 
 impl X12Segment for TrnSegment {}
 
-/// DTM - Date/Time Reference
+
 #[derive(Debug, Clone)]
 pub struct DtmSegment {
-    pub dtm01_qualifier: String, // 405 = Production Date
-    pub dtm02_date: String,      // YYYYMMDD format
+    pub dtm01_qualifier: String, 
+    pub dtm02_date: String,      
 }
 
 impl fmt::Display for DtmSegment {
@@ -128,12 +128,12 @@ impl fmt::Display for DtmSegment {
 
 impl X12Segment for DtmSegment {}
 
-/// N1 - Name
+
 #[derive(Debug, Clone)]
 pub struct N1Segment {
-    pub n101_entity_id: String, // PR = Payer, PE = Payee
+    pub n101_entity_id: String, 
     pub n102_name: String,
-    pub n103_id_qual: String, // XX = EIN, FI = Federal Tax ID, etc.
+    pub n103_id_qual: String, 
     pub n104_id: String,
 }
 
@@ -149,15 +149,15 @@ impl fmt::Display for N1Segment {
 
 impl X12Segment for N1Segment {}
 
-/// CLP - Claim Payment Information
+
 #[derive(Debug, Clone)]
 pub struct ClpSegment {
     pub clp01_claim_id: String,
-    pub clp02_claim_status: String, // 1 = Processed as Primary, 2 = Processed as Secondary, etc.
+    pub clp02_claim_status: String, 
     pub clp03_charge_amount: f64,
     pub clp04_paid_amount: f64,
     pub clp05_patient_responsibility: f64,
-    pub clp06_claim_type: String, // 11 = Non-FFS, 12 = PPV, etc.
+    pub clp06_claim_type: String, 
     pub clp07_payer_claim_number: String,
 }
 
@@ -178,7 +178,7 @@ impl fmt::Display for ClpSegment {
 
 impl X12Segment for ClpSegment {}
 
-/// SVC - Service Payment Information
+
 #[derive(Debug, Clone)]
 pub struct SvcSegment {
     pub svc01_procedure_code: String,
@@ -196,7 +196,7 @@ impl fmt::Display for SvcSegment {
             self.svc01_procedure_code,
             self.svc02_charge_amount,
             self.svc03_paid_amount,
-            self.svc03_paid_amount, // Paid amount again for the second amount
+            self.svc03_paid_amount, 
             self.svc04_revenue_code.as_deref().unwrap_or(""),
             self.svc05_units
         )
@@ -204,16 +204,16 @@ impl fmt::Display for SvcSegment {
 }
 
 impl X12Segment for SvcSegment {}
-/// CAS - Service Adjustment Information
+
 #[derive(Debug, Clone)]
 pub struct CasSegment {
-    /// Adjustment group code (CAS01)
+    
     pub cas01_group_code: String,
-    /// Adjustment reason code (CAS02)
+    
     pub cas02_reason_code: String,
-    /// Adjustment amount (CAS03)
+    
     pub cas03_amount: f64,
-    /// Adjustment units (CAS04)
+    
     pub cas04_units: f64,
 }
 
@@ -229,7 +229,7 @@ impl fmt::Display for CasSegment {
 
 impl X12Segment for CasSegment {}
 
-/// SE - Transaction Set Trailer
+
 #[derive(Debug, Clone)]
 pub struct SeSegment {
     pub se01_segment_count: u32,
@@ -248,7 +248,7 @@ impl fmt::Display for SeSegment {
 
 impl X12Segment for SeSegment {}
 
-/// GE - Functional Group Trailer
+
 #[derive(Debug, Clone)]
 pub struct GeSegment {
     pub ge01_number_of_transaction_sets: u32,
@@ -267,7 +267,7 @@ impl fmt::Display for GeSegment {
 
 impl X12Segment for GeSegment {}
 
-/// IEA - Interchange Control Trailer
+
 #[derive(Debug, Clone)]
 pub struct IeaSegment {
     pub iea01_number_of_included_functional_groups: u32,

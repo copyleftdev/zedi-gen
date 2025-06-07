@@ -1,11 +1,11 @@
-//! Main generator module for zedi-gen
+
 
 use crate::anomalies::{Anomaly, AnomalyConfig, AnomalyInjectionResult, AnomalyInjector};
 use crate::claims::{Claim, ClaimGenerator};
 use crate::config::{Config, OutputFormat};
 use crate::population::PopulationGenerator;
 
-// Import x12 types using standard module paths
+
 use crate::x12::envelope::{FunctionalGroup, TransactionSet, X12Interchange};
 use crate::x12::segments::{
     BprSegment, CasSegment, ClpSegment, DtmSegment, N1Segment, SvcSegment, TrnSegment,
@@ -20,7 +20,7 @@ use std::{
     time::{SystemTime, UNIX_EPOCH},
 };
 
-/// Main generator for creating synthetic X12 835 claims
+
 pub struct Generator {
     config: Config,
     pop_generator: PopulationGenerator,
@@ -29,14 +29,14 @@ pub struct Generator {
 }
 
 impl Generator {
-    /// Create a new Generator with the given configuration
+    
     pub fn new(config: Config) -> Self {
         let seed = config.seed;
 
         let pop_generator = PopulationGenerator::new(seed);
         let claim_generator = ClaimGenerator::new(seed);
 
-        // Configure anomaly injection
+        
         let anomaly_config = AnomalyConfig {
             base_rate: config.anomaly_rate,
             ..Default::default()
@@ -52,9 +52,9 @@ impl Generator {
         }
     }
 
-    /// Generate claims and write them to the configured output
+    
     pub fn generate(&mut self) -> io::Result<()> {
-        // Create a local reference to config to avoid borrowing issues
+        
         let output_path = self.config.output_path.clone();
         match output_path {
             Some(path) => self.generate_to_file(path),
@@ -62,20 +62,20 @@ impl Generator {
         }
     }
 
-    /// Generate claims and write them to a file
+    
     pub fn generate_to_file<P: AsRef<Path>>(&mut self, path: P) -> io::Result<()> {
         let file = File::create(path)?;
         self.generate_and_serialize(Box::new(file))
     }
 
-    /// Generate claims and write them to stdout
+    
     pub fn generate_to_stdout(&mut self) -> io::Result<()> {
         let stdout = io::stdout();
         let handle = stdout.lock();
         self.generate_and_serialize(Box::new(handle))
     }
 
-    /// Generate claims and serialize them to the given writer
+    
     fn generate_and_serialize(&mut self, writer: Box<dyn Write>) -> io::Result<()> {
         match self.config.output_format {
             OutputFormat::X12 => self.generate_x12(writer),
@@ -84,18 +84,18 @@ impl Generator {
         }
     }
 
-    /// Generate claims and write them to the provided writer. This does not write to stdout or a file.
+    
     pub fn generate_to_writer(&mut self, writer: Box<dyn Write>) -> io::Result<()> {
         self.generate_and_serialize(writer)
     }
 
-    /// Generate claims in X12 EDI format (835 transaction set)
+    
     fn generate_x12(&mut self, mut writer: Box<dyn Write>) -> io::Result<()> {
-        // Create a new X12 interchange
+        
         let control_number = Self::generate_control_number();
         let mut interchange = X12Interchange::new("SENDER001", "RECEIVER01", &control_number);
 
-        // Create a functional group
+        
         let mut group = FunctionalGroup::new(
             "SENDER001",
             "RECEIVER01",
@@ -104,27 +104,27 @@ impl Generator {
             &Utc::now().format("%H%M").to_string(),
         );
 
-        // Create a transaction set for each claim
+        
         for _ in 0..self.config.claim_count {
             let claim_result = self.generate_single_claim();
             let transaction = self.create_835_transaction(&claim_result.claim);
             group.add_transaction_set(transaction);
         }
 
-        // Add the group to the interchange
+        
         interchange.add_functional_group(group);
 
-        // Write the X12 data to the writer
+        
         write!(&mut *writer, "{}", interchange)?;
         Ok(())
     }
 
-    /// Create an X12 835 transaction from a claim
+    
     fn create_835_transaction(&self, claim: &Claim) -> TransactionSet {
         let control_number = Self::generate_control_number();
         let mut transaction = TransactionSet::new(&control_number);
 
-        // Add BPR (Beginning of Payment Order/Remittance Advice)
+        
         let bpr = BprSegment {
             bpr02_payment_amount: (claim.total_payment as f64) / 100.0,
             bpr03_credit_debit: 'C',
@@ -133,21 +133,21 @@ impl Generator {
         };
         transaction.add_segment(bpr);
 
-        // Add TRN (Trace Number)
+        
         let trn = TrnSegment {
             trn02_reference_id: claim.claim_id.clone(),
             trn03_orig_company_id: "PAYER123".to_string(),
         };
         transaction.add_segment(trn);
 
-        // Add DTM (Date/Time Reference) - Production Date
+        
         let dtm = DtmSegment {
             dtm01_qualifier: "405".to_string(),
             dtm02_date: Utc::now().format("%Y%m%d").to_string(),
         };
         transaction.add_segment(dtm);
 
-        // Add N1 (Name) - Payer
+        
         let n1_payer = N1Segment {
             n101_entity_id: "PR".to_string(),
             n102_name: "PAYER NAME".to_string(),
@@ -156,7 +156,7 @@ impl Generator {
         };
         transaction.add_segment(n1_payer);
 
-        // Add N1 (Name) - Payee
+        
         let n1_payee = N1Segment {
             n101_entity_id: "PE".to_string(),
             n102_name: claim.billing_provider.name.clone(),
@@ -165,19 +165,19 @@ impl Generator {
         };
         transaction.add_segment(n1_payee);
 
-        // Add CLP (Claim Payment Information)
+        
         let clp = ClpSegment {
             clp01_claim_id: claim.claim_id.clone(),
-            clp02_claim_status: "1".to_string(), // Paid
+            clp02_claim_status: "1".to_string(), 
             clp03_charge_amount: (claim.total_charge as f64) / 100.0,
             clp04_paid_amount: (claim.total_payment as f64) / 100.0,
             clp05_patient_responsibility: (claim.patient_responsibility as f64) / 100.0,
-            clp06_claim_type: "11".to_string(), // Non-FFS
+            clp06_claim_type: "11".to_string(), 
             clp07_payer_claim_number: format!("CLM{}", claim.claim_id),
         };
         transaction.add_segment(clp);
 
-        // Add service lines
+        
         for (_, service_line) in claim.service_lines.iter().enumerate() {
             let svc = SvcSegment {
                 svc01_procedure_code: service_line.procedure_code.clone(),
@@ -188,7 +188,7 @@ impl Generator {
             };
             transaction.add_segment(svc);
 
-            // Add service line adjustments (CAS) if there is an adjustment amount
+            
             if service_line.adjustment_amount > 0 {
                 let cas = CasSegment {
                     cas01_group_code: "CO".to_string(),
@@ -203,7 +203,7 @@ impl Generator {
         transaction
     }
 
-    /// Generate a unique control number
+    
     fn generate_control_number() -> String {
         let start = SystemTime::now();
         let since_epoch = start
@@ -214,7 +214,7 @@ impl Generator {
         format!("{:08}{:08}", since_epoch % 100000000, random % 10000)
     }
 
-    /// Generate claims in JSON format
+    
     fn generate_json(&mut self, mut writer: Box<dyn Write>, pretty: bool) -> io::Result<()> {
         let mut claims = Vec::with_capacity(self.config.claim_count);
 
@@ -236,9 +236,9 @@ impl Generator {
         Ok(())
     }
 
-    /// Generate a single claim with anomalies
+    
     fn generate_single_claim(&mut self) -> AnomalyInjectionResult {
-        // Generate synthetic data
+        
         let patient = self.pop_generator.generate_person();
         let billing_provider = self.pop_generator.generate_provider();
         let rendering_provider = if rand::random() {
@@ -247,17 +247,17 @@ impl Generator {
             None
         };
 
-        // Generate claim
+        
         let claim =
             self.claim_generator
                 .generate_claim(patient, billing_provider, rendering_provider);
 
-        // Inject anomalies
+        
         self.anomaly_injector.inject_anomalies(claim)
     }
 }
 
-/// Structure for JSON output
+
 #[derive(Debug, Serialize)]
 struct JsonOutput {
     claim: Claim,
@@ -293,7 +293,7 @@ mod tests {
         let mut generator = Generator::new(config);
         generator.generate()?;
 
-        // Verify the file was created and has content
+        
         let metadata = std::fs::metadata(path)?;
         assert!(metadata.len() > 0);
 
@@ -306,29 +306,29 @@ mod tests {
 
         let config = Config {
             claim_count: 2,
-            output_path: None, // This should make it use stdout
+            output_path: None, 
             output_format: crate::config::OutputFormat::Json,
             ..Default::default()
         };
 
         let mut generator = Generator::new(config);
 
-        // Create a temporary file for testing
+        
         let temp_file = NamedTempFile::new()?;
         let path = temp_file.path().to_owned();
 
-        // Generate to file
+        
         generator.generate_to_file(&path)?;
 
-        // Read the file back
+        
         let content = std::fs::read_to_string(path)?;
         assert!(!content.is_empty());
 
-        // The output should be valid JSON
+        
         let json: serde_json::Value =
             serde_json::from_str(&content).expect("Output should be valid JSON");
 
-        // Should be an array with 2 items (claim_count = 2)
+        
         if let serde_json::Value::Array(items) = json {
             assert_eq!(items.len(), 2);
         } else {

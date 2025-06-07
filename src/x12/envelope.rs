@@ -1,9 +1,9 @@
-//! X12 envelope handling for EDI transactions
+
 
 use super::segments::*;
 use std::fmt;
 
-/// Represents an X12 interchange
+
 pub struct X12Interchange {
     pub isa: IsaSegment,
     pub functional_groups: Vec<FunctionalGroup>,
@@ -11,17 +11,17 @@ pub struct X12Interchange {
 }
 
 impl X12Interchange {
-    /// Create a new X12 interchange
+    
     pub fn new(sender_id: &str, receiver_id: &str, control_number: &str) -> Self {
         let isa = IsaSegment {
             isa06_sender_id: sender_id.to_string(),
             isa08_receiver_id: receiver_id.to_string(),
             isa12_control_number: control_number.to_string(),
-            isa13_usage_indicator: 'P', // Production
+            isa13_usage_indicator: 'P', 
         };
 
         let iea = IeaSegment {
-            iea01_number_of_included_functional_groups: 1, // Will be updated when adding groups
+            iea01_number_of_included_functional_groups: 1, 
             iea02_interchange_control_number: control_number.to_string(),
         };
 
@@ -32,7 +32,7 @@ impl X12Interchange {
         }
     }
 
-    /// Add a functional group to the interchange
+    
     pub fn add_functional_group(&mut self, group: FunctionalGroup) {
         self.functional_groups.push(group);
         self.iea.iea01_number_of_included_functional_groups = self.functional_groups.len() as u32;
@@ -41,20 +41,20 @@ impl X12Interchange {
 
 impl fmt::Display for X12Interchange {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        // Write ISA
+        
         writeln!(f, "{}", self.isa)?;
 
-        // Write all functional groups
+        
         for group in &self.functional_groups {
             writeln!(f, "{}", group)?;
         }
 
-        // Write IEA
+        
         write!(f, "{}", self.iea)
     }
 }
 
-/// Represents a functional group
+
 pub struct FunctionalGroup {
     pub gs: GsSegment,
     pub transaction_sets: Vec<TransactionSet>,
@@ -62,7 +62,7 @@ pub struct FunctionalGroup {
 }
 
 impl FunctionalGroup {
-    /// Create a new functional group
+    
     pub fn new(
         sender_id: &str,
         receiver_id: &str,
@@ -77,7 +77,7 @@ impl FunctionalGroup {
         };
 
         let ge = GeSegment {
-            ge01_number_of_transaction_sets: 0, // Will be updated when adding transactions
+            ge01_number_of_transaction_sets: 0, 
             ge02_group_control_number: control_number.to_string(),
         };
 
@@ -88,7 +88,7 @@ impl FunctionalGroup {
         }
     }
 
-    /// Add a transaction set to the functional group
+    
     pub fn add_transaction_set(&mut self, transaction: TransactionSet) {
         self.transaction_sets.push(transaction);
         self.ge.ge01_number_of_transaction_sets = self.transaction_sets.len() as u32;
@@ -97,20 +97,20 @@ impl FunctionalGroup {
 
 impl fmt::Display for FunctionalGroup {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        // Write GS
+        
         writeln!(f, "{}", self.gs)?;
 
-        // Write all transaction sets
+        
         for transaction in &self.transaction_sets {
             writeln!(f, "{}", transaction)?;
         }
 
-        // Write GE
+        
         write!(f, "{}", self.ge)
     }
 }
 
-/// Represents a transaction set (ST/SE)
+
 pub struct TransactionSet {
     pub st: StSegment,
     pub segments: Vec<Box<dyn X12Segment>>,
@@ -118,14 +118,14 @@ pub struct TransactionSet {
 }
 
 impl TransactionSet {
-    /// Create a new transaction set
+    
     pub fn new(control_number: &str) -> Self {
         let st = StSegment {
             st02_control_number: control_number.to_string(),
         };
 
         let se = SeSegment {
-            se01_segment_count: 0, // Will be updated when adding segments
+            se01_segment_count: 0, 
             se02_transaction_control_number: control_number.to_string(),
         };
 
@@ -136,25 +136,25 @@ impl TransactionSet {
         }
     }
 
-    /// Add a segment to the transaction set
+    
     pub fn add_segment<S: X12Segment + 'static>(&mut self, segment: S) {
         self.segments.push(Box::new(segment));
-        // ST + segments + SE
+        
         self.se.se01_segment_count = (self.segments.len() + 2) as u32;
     }
 }
 
 impl fmt::Display for TransactionSet {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        // Write ST
+        
         writeln!(f, "{}", self.st)?;
 
-        // Write all segments
+        
         for segment in &self.segments {
             writeln!(f, "{}", segment)?;
         }
 
-        // Write SE
+        
         write!(f, "{}", self.se)
     }
 }
@@ -173,7 +173,7 @@ mod tests {
 
         let mut transaction = TransactionSet::new("0001");
 
-        // Add a BPR segment
+        
         let bpr = BprSegment {
             bpr02_payment_amount: 1000.50,
             bpr03_credit_debit: 'C',
@@ -182,7 +182,7 @@ mod tests {
         };
         transaction.add_segment(bpr);
 
-        // Add a TRN segment
+        
         let trn = TrnSegment {
             trn02_reference_id: "1234567890".to_string(),
             trn03_orig_company_id: "COMPANY123".to_string(),
