@@ -1,4 +1,4 @@
-//! Benchmarks for zedi-gen
+
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use std::io;
@@ -7,14 +7,14 @@ use zedi_gen::{config::Config, generator::Generator, population::PopulationGener
 fn generate_claims(c: &mut Criterion) {
     let config = Config {
         claim_count: 1000,
-        anomaly_rate: 0.01, // 1% anomalies
+        anomaly_rate: 0.01, 
         ..Default::default()
     };
 
     c.bench_function("generate_1000_claims", |b| {
         b.iter(|| {
             let mut generator = Generator::new(config.clone());
-            // Direct output to sink to avoid I/O overhead during benchmarking
+            
             generator.generate_to_writer(Box::new(io::sink())).unwrap();
         })
     });

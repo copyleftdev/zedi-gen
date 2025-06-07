@@ -1,32 +1,32 @@
-//! Error types for zedi-gen
+
 
 use std::fmt;
 
-/// A specialized `Result` type for zedi-gen operations.
+
 pub type Result<T> = std::result::Result<T, Error>;
 
-/// The error type for zedi-gen operations.
+
 #[derive(Debug)]
 pub enum Error {
-    /// I/O error
+    
     Io(std::io::Error),
 
-    /// JSON serialization/deserialization error
+    
     Json(serde_json::Error),
 
-    /// TOML serialization/deserialization error
+    
     Toml(toml::ser::Error),
 
-    /// TOML deserialization error
+    
     TomlDe(toml::de::Error),
 
-    /// Configuration error
+    
     Config(String),
 
-    /// Validation error
+    
     Validation(String),
 
-    /// Generation error
+    
     Generation(String),
 }
 
@@ -80,9 +80,9 @@ impl From<toml::de::Error> for Error {
     }
 }
 
-/// Helper trait for adding context to errors
+
 pub trait Context<T, E> {
-    /// Add context to an error
+    
     fn context<C>(self, context: C) -> Result<T>
     where
         C: fmt::Display + Send + Sync + 'static;

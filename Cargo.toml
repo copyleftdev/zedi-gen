@@ -25,16 +25,16 @@ csv = "1.1"
 fake = "3"
 toml = { version = "0.8", features = ["parse"] }
 anyhow = "1.0"
-rayon = "1.8"  # For parallel processing
+rayon = "1.8"  
 lazy_static = "1.4"
 strum = { version = "0.25", features = ["derive"] }
 
-# Features for controlling build configurations
+
 [features]
 default = []
 bin = []
 
-# Re-export for proc-macros to use
+
 [package.metadata.docs.rs]
 all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
